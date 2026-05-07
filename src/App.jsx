@@ -1,12 +1,11 @@
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import './index.css'
-import { AgentChat } from './components/AgentChat'
+import { AgentChat } from './components/AgentChat.jsx'
 import { Box, CheckCircle2, Cloud } from 'lucide-react'
-import { PhaseRail } from './components/PhaseRail'
-import { ThemeToggle } from './components/ThemeToggle'
-import { WorkflowProgress } from './components/WorkflowProgress'
-import { PortalProvider, usePortal } from './context/PortalContext'
-import type { InsightsDataset, ThinkingLine, WorkflowPhase } from './types'
+import { PhaseRail } from './components/PhaseRail.jsx'
+import { ThemeToggle } from './components/ThemeToggle.jsx'
+import { WorkflowProgress } from './components/WorkflowProgress.jsx'
+import { PortalProvider, usePortal } from './context/PortalContext.jsx'
 import {
   generateRule,
   insightsChartData,
@@ -14,13 +13,13 @@ import {
   recommendSimulation,
   runVerification,
   startLargeSimulation,
-} from './api/client'
-import { makeThinkingIds } from './utils/thinking'
-import { RuleGeneration } from './workspace/RuleGeneration'
-import { PullRequestFlow } from './workspace/PullRequestFlow'
-import { Verification } from './workspace/Verification'
-import { LargeSimulation } from './workspace/LargeSimulation'
-import { InsightsDashboard } from './workspace/InsightsDashboard'
+} from './api/client.js'
+import { makeThinkingIds } from './utils/thinking.js'
+import { RuleGeneration } from './workspace/RuleGeneration.jsx'
+import { PullRequestFlow } from './workspace/PullRequestFlow.jsx'
+import { Verification } from './workspace/Verification.jsx'
+import { LargeSimulation } from './workspace/LargeSimulation.jsx'
+import { InsightsDashboard } from './workspace/InsightsDashboard.jsx'
 
 const GENERIC_RULE_THINKING = [
   'Interpreting product language vs RefrigeratorFact binding graph',
@@ -29,34 +28,23 @@ const GENERIC_RULE_THINKING = [
 ]
 
 const GENERIC_PR_THINKING = [
-    'Hydrating SCM metadata for deterministic branch naming',
-    'Rendering Git patch + CODEOWNERS fan-out hints',
-    'Scheduling CI workflows for Drools compile + harness smoke',
-  ]
-
-const GENERIC_VERIFY_THINKING = [
-    'Building temporary Fact inserts from telemetry CSV tuples',
-    'Spinning KieContainer with ephemeral release id',
-    'Aggregating LHS truth tables for KPI extraction',
-  ]
-
-const GENERIC_SIM_THINKING = [
-    'Consulting Glue / Athena statistics for parquet prune plan',
-    'Evaluating Kie fan-out parallelism vs Athena byte pricing',
+  'Hydrating SCM metadata for deterministic branch naming',
+  'Rendering Git patch + CODEOWNERS fan-out hints',
+  'Scheduling CI workflows for Drools compile + harness smoke',
 ]
 
-type VerifyKpis = {
-  matchScore: number
-  triggered: number
-  notTriggered: number
-  conditions: Array<{ conditionId: string; passRate: number; avgWhenTrueC: string }>
-}
+const GENERIC_VERIFY_THINKING = [
+  'Building temporary Fact inserts from telemetry CSV tuples',
+  'Spinning KieContainer with ephemeral release id',
+  'Aggregating LHS truth tables for KPI extraction',
+]
 
-function rotateThinking(
-  labels: string[],
-  setter: Dispatch<SetStateAction<ThinkingLine[] | null>>,
-  ms: number,
-) {
+const GENERIC_SIM_THINKING = [
+  'Consulting Glue / Athena statistics for parquet prune plan',
+  'Evaluating Kie fan-out parallelism vs Athena byte pricing',
+]
+
+function rotateThinking(labels, setter, ms) {
   const lines = makeThinkingIds(labels)
   let wave = 0
   setter(lines.map((l, i) => ({ ...l, done: i < wave })))
@@ -67,7 +55,7 @@ function rotateThinking(
   }, ms)
 }
 
-function slashRoute(text: string): WorkflowPhase | null {
+function slashRoute(text) {
   if (!text.startsWith('/')) return null
   const head = text.slice(1).trim().split(/\s+/)[0]?.toLowerCase()
   switch (head) {
@@ -103,20 +91,19 @@ function AppInner() {
     setSimulationFilters,
   } = usePortal()
 
-  const [thinking, setThinking] = useState<ThinkingLine[] | null>(null)
+  const [thinking, setThinking] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [verifyKpis, setVerifyKpis] = useState<VerifyKpis | undefined>()
-  const [verifyNotes, setVerifyNotes] = useState<string | undefined>()
-  const [simRecommendation, setSimRecommendation] =
-    useState<Awaited<ReturnType<typeof recommendSimulation>> | null>(null)
-  const [insights, setInsights] = useState<InsightsDataset | null>(null)
+  const [verifyKpis, setVerifyKpis] = useState()
+  const [verifyNotes, setVerifyNotes] = useState()
+  const [simRecommendation, setSimRecommendation] = useState(null)
+  const [insights, setInsights] = useState(null)
 
   const messagesForApi = useMemo(
     () => state.chat.map((m) => ({ role: m.role, content: m.body })),
     [state.chat],
   )
 
-  const replaySteps = useCallback(async (steps: string[], ms = 265) => {
+  const replaySteps = useCallback(async (steps, ms = 265) => {
     const ids = makeThinkingIds(steps)
     for (let pass = 0; pass <= steps.length; pass++) {
       const view = ids.map((l, idx) => ({ ...l, done: idx < pass }))
@@ -130,7 +117,7 @@ function AppInner() {
     setBusy(true)
     const ticker = rotateThinking(GENERIC_RULE_THINKING, setThinking, 620)
     try {
-      const data = (await insightsChartData()) as InsightsDataset
+      const data = await insightsChartData()
       setInsights(data)
       appendChat('assistant', data.aiNarrative)
     } catch (err) {
@@ -146,7 +133,7 @@ function AppInner() {
   }, [insights, busy, appendChat])
 
   const handlePhaseSelect = useCallback(
-    (p: WorkflowPhase) => {
+    (p) => {
       setPhase(p)
       appendChat('assistant', `Switched canvas to “${p.replace(/-/g, ' ')}”. Chat stays contextual.`)
       if (p === 'insights') void bootInsights()
@@ -155,7 +142,7 @@ function AppInner() {
   )
 
   const handleSend = useCallback(
-    async (text: string) => {
+    async (text) => {
       if (!text.trim() || busy) return
       appendChat('user', text.trim())
       const routed = slashRoute(text.trim())

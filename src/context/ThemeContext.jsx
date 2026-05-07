@@ -1,26 +1,20 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-
-export type ThemeMode = 'dark' | 'light'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 const STORAGE_KEY = 'portal-theme'
 
-const Ctx = createContext<{
-  theme: ThemeMode
-  setTheme: (t: ThemeMode) => void
-  toggleTheme: () => void
-} | null>(null)
+const Ctx = createContext(null)
 
-function readStored(): ThemeMode {
+function readStored() {
   if (typeof window === 'undefined') return 'dark'
   const v = window.localStorage.getItem(STORAGE_KEY)
   return v === 'light' || v === 'dark' ? v : 'dark'
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(() => readStored())
+export function ThemeProvider({ children }) {
+  const [theme, setThemeState] = useState(() => readStored())
 
-  const apply = useCallback((t: ThemeMode) => {
+  const apply = useCallback((t) => {
     document.documentElement.dataset.theme = t
     window.localStorage.setItem(STORAGE_KEY, t)
   }, [])
@@ -29,7 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     apply(theme)
   }, [theme, apply])
 
-  const setTheme = useCallback((t: ThemeMode) => {
+  const setTheme = useCallback((t) => {
     setThemeState(t)
   }, [])
 

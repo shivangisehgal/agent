@@ -1,7 +1,6 @@
 import { Brain, Check } from 'lucide-react'
-import type { ThinkingLine } from '../types'
 
-export function ThinkingStream({ lines }: { lines: ThinkingLine[] | null }) {
+export function ThinkingStream({ lines }) {
   if (!lines?.length) return null
   return (
     <div className="thinking-stream glass-inset fade-in">

@@ -26,7 +26,7 @@ then
 end
 `
 
-function mockReasoning(prompt: string) {
+function mockReasoning(prompt) {
   const p = prompt.toLowerCase()
   const hasTemp =
     p.includes('temp') || p.includes('°') || p.includes('freezer') || p.includes('thermal')
@@ -40,10 +40,9 @@ function mockReasoning(prompt: string) {
         'freezerTempAvgCelsius > freezeThresholdHighCelsius\n        durationAboveThresholdMinutes >= 120',
       confidence: hasTemp ? 0.93 : 0.78,
       needsReview: !hasTemp,
-      notes:
-        hasTemp
-          ? 'Confirm OEM threshold table aligns with SKU family RD-411 targets.'
-          : 'Ambiguous wording — recommend door-open heuristic or completeness guard.',
+      notes: hasTemp
+        ? 'Confirm OEM threshold table aligns with SKU family RD-411 targets.'
+        : 'Ambiguous wording — recommend door-open heuristic or completeness guard.',
     },
     {
       conditionNo: 'C2',
@@ -65,7 +64,7 @@ function mockReasoning(prompt: string) {
     reasoningTable: rows,
     drl: MOCK_DRL,
     overallConfidence: rows.reduce((a, r) => a + r.confidence, 0) / rows.length,
-    compilationStatus: 'success' as const,
+    compilationStatus: 'success',
     aiMessage:
       rows[0]?.needsReview === true
         ? 'Mapped your statement into draft DRL with two guarding conditions. C1 confidence is conservative until we pin the exact freezer threshold wording.'
@@ -73,7 +72,7 @@ function mockReasoning(prompt: string) {
   }
 }
 
-async function generateRuleWithAi(userMessage: string) {
+async function generateRuleWithAi(userMessage) {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY missing')
   const openai = new OpenAI({ apiKey })
@@ -103,14 +102,7 @@ Facts class is RefrigeratorFact with typical fields deviceType freezerTempAvgCel
   if (text.startsWith('```')) {
     text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')
   }
-  const parsed = JSON.parse(text) as {
-    reasoningTable: unknown
-    drl: string
-    overallConfidence: number
-    compilationStatus: 'success' | 'warnings'
-    thinkingSteps?: string[]
-    aiMessage: string
-  }
+  const parsed = JSON.parse(text)
   if (!parsed.thinkingSteps?.length) {
     parsed.thinkingSteps = [
       'Iterating Drools LHS under strict JSON grammar',
@@ -123,10 +115,9 @@ Facts class is RefrigeratorFact with typical fields deviceType freezerTempAvgCel
 
 app.post('/api/rules/generate', async (req, res) => {
   try {
+    const msgs = req.body.messages
     const lastUser =
-      (req.body.messages as Array<{ role: string; content: string }> | undefined)?.filter(
-        (m) => m.role === 'user',
-      ).pop()?.content ??
+      (Array.isArray(msgs) ? msgs.filter((m) => m.role === 'user').pop()?.content : undefined) ??
       req.body.prompt ??
       ''
     if (!lastUser) {
@@ -180,7 +171,7 @@ app.post('/api/github/prepare-pr', async (req, res) => {
 })
 
 app.post('/api/verify/run', async (req, res) => {
-  const csv: string = req.body.csv ?? ''
+  const csv = req.body.csv ?? ''
   const rows = csv
     .split(/\r?\n/)
     .map((line) => line.split(','))
@@ -192,9 +183,9 @@ app.post('/api/verify/run', async (req, res) => {
     triggered: simulated,
     notTriggered: Math.max(total - simulated, 0),
     conditions: [
-       { conditionId: 'C1', passRate: 0.71, avgWhenTrueC: '-7.8°C median spike' },
-       { conditionId: 'C2', passRate: 0.93, avgWhenTrueC: 'n/a' },
-     ],
+      { conditionId: 'C1', passRate: 0.71, avgWhenTrueC: '-7.8°C median spike' },
+      { conditionId: 'C2', passRate: 0.93, avgWhenTrueC: 'n/a' },
+    ],
     notes:
       'Heuristic KPIs computed from CSV row density and synthetic firing model (stub). Wire to embedded Drools for production.',
     thinkingSteps: [
@@ -222,10 +213,7 @@ app.post('/api/simulation/recommend', async (_req, res) => {
   })
 })
 
-const jobs = new Map<
-  string,
-  { progress: number; stages: { name: string; status: string }[] }
->()
+const jobs = new Map()
 
 app.post('/api/simulation/start', async (req, res) => {
   const jobId = 'job-' + Math.random().toString(36).slice(2, 11)
@@ -262,7 +250,7 @@ app.post('/api/simulation/start', async (req, res) => {
     thinkingSteps: [
       'Publishing execution graph to orchestrator',
       'Materializing Athena UNLOAD staging paths',
-       'Hydrating KieSession pool for rule fan-out batches',
+      'Hydrating KieSession pool for rule fan-out batches',
       'Emitting Prometheus counters for SLA tracking',
     ],
   })
@@ -294,35 +282,40 @@ app.get('/api/insights/chart-data', (_req, res) => {
       { t: 'W46', diagnosed: 12800 },
       { t: 'W47', diagnosed: 13550 },
       { t: 'W48', diagnosed: 14220 },
-       { t: 'W49', diagnosed: 15100 },
-       { t: 'W50', diagnosed: 16340 },
-       { t: 'W51', diagnosed: 16890 },
+      { t: 'W49', diagnosed: 15100 },
+      { t: 'W50', diagnosed: 16340 },
+      { t: 'W51', diagnosed: 16890 },
     ],
     modelOverlap: [
       { model: 'RF-A', share: 0.31 },
-       { model: 'RF-B', share: 0.24 },
-       { model: 'RF-C', share: 0.19 },
-       { model: 'RF-D', share: 0.15 },
-       { model: 'Other', share: 0.11 },
-     ],
+      { model: 'RF-B', share: 0.24 },
+      { model: 'RF-C', share: 0.19 },
+      { model: 'RF-D', share: 0.15 },
+      { model: 'Other', share: 0.11 },
+    ],
     topRegions: [
       { region: 'US', pct: 0.38 },
-       { region: 'CA', pct: 0.12 },
-       { region: 'MX', pct: 0.09 },
-       { region: 'EU', pct: 0.22 },
-       { region: 'APAC', pct: 0.19 },
-     ],
+      { region: 'CA', pct: 0.12 },
+      { region: 'MX', pct: 0.09 },
+      { region: 'EU', pct: 0.22 },
+      { region: 'APAC', pct: 0.19 },
+    ],
     numericConditionStats: {
-      freezerTemp_when_C1_true: { min: 4.5, max: 18.2, median: 10.9, suggestedThresholdDraft: '9.8°C adaptive' },
+      freezerTemp_when_C1_true: {
+        min: 4.5,
+        max: 18.2,
+        median: 10.9,
+        suggestedThresholdDraft: '9.8°C adaptive',
+      },
     },
     sqlSourceLabels: {
       diagnosisTrend: 'SELECT week, SUM(diagnosed) ... FROM mart.dx_rule_hits PARTITION (dt)...',
-       modelOverlap: 'SELECT model_code, COUNT(*) ... JOIN dim.product ...',
-     },
+      modelOverlap: 'SELECT model_code, COUNT(*) ... JOIN dim.product ...',
+    },
     aiNarrative:
       'Condition C1 dominates northern regions during summer firmware cohorts — consider tightening dwell time before promoting threshold drafts.',
-   })
- })
+  })
+})
 
 const PORT = Number(process.env.PORT ?? 3001)
 app.listen(PORT, () => {

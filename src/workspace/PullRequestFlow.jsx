@@ -10,15 +10,6 @@ export function PullRequestFlow({
   onMerge,
   onReject,
   busy,
-}: {
-  drl: string
-  prUrl?: string
-  prBranch?: string
-  merged: boolean | null
-  onPrepare: () => Promise<void>
-  onMerge: () => void
-  onReject: () => void
-  busy: boolean
 }) {
   const [localBusy, setLocalBusy] = useState(false)
   async function clickPrepare() {
@@ -39,10 +30,10 @@ export function PullRequestFlow({
             <div>
               <div className="eyebrow">GitHub / eCode</div>
               <h2>Generated pull request</h2>
-            <p className="muted">
-              Backend issues real PR calls when `GITHUB_TOKEN` and repository metadata are configured.
-              Today the API returns a high-fidelity stub you can wire to your org.
-            </p>
+              <p className="muted">
+                Backend issues real PR calls when `GITHUB_TOKEN` and repository metadata are configured.
+                Today the API returns a high-fidelity stub you can wire to your org.
+              </p>
             </div>
           </div>
         </header>

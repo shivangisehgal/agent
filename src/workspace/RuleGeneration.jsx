@@ -1,5 +1,4 @@
 import { FileCode2, TableProperties } from 'lucide-react'
-import type { ReasonRow } from '../types'
 
 export function RuleGeneration({
   rows,
@@ -10,15 +9,6 @@ export function RuleGeneration({
   accepted,
   onAcceptContinue,
   busy,
-}: {
-  rows: ReasonRow[]
-  overall?: number
-  compilationStatus?: 'success' | 'warnings'
-  drl: string
-  onDrlChange: (v: string) => void
-  accepted: boolean
-  onAcceptContinue: () => void
-  busy: boolean
 }) {
   return (
     <div className="workspace-grid">

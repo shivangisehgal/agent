@@ -1,19 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Bot, Send, Sparkles, User } from 'lucide-react'
-import type { ChatMessage, ThinkingLine } from '../types'
-import { ThinkingStream } from './ThinkingStream'
+import { ThinkingStream } from './ThinkingStream.jsx'
 
-export function AgentChat({
-  messages,
-  thinkingLines,
-  onSend,
-}: {
-  messages: ChatMessage[]
-  thinkingLines: ThinkingLine[] | null
-  onSend: (text: string) => void
-}) {
+export function AgentChat({ messages, thinkingLines, onSend }) {
   const [draft, setDraft] = useState('')
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef(null)
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, thinkingLines])

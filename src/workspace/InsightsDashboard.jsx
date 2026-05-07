@@ -12,13 +12,12 @@ import {
   Cell,
 } from 'recharts'
 import { Activity, BarChart3, LineChart as LineChartIcon, Loader2, PieChart as PieIcon, Sparkles } from 'lucide-react'
-import { useTheme } from '../context/ThemeContext'
-import type { InsightsDataset } from '../types'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 const PALETTE = ['#4f8bff', '#00d2ff', '#8b5cf6', '#32d583', '#ffcb6b']
 const PALETTE_LIGHT = ['#2563eb', '#0891b2', '#7c3aed', '#059669', '#d97706']
 
-export function InsightsDashboard({ data }: { data: InsightsDataset | null }) {
+export function InsightsDashboard({ data }) {
   const { theme } = useTheme()
   const stroke = theme === 'light' ? '#64748b' : '#94a8d4'
   const tipBg = theme === 'light' ? 'rgba(255,255,255,0.96)' : 'rgba(15,29,62,0.92)'

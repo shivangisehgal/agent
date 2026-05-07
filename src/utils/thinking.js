@@ -1,6 +1,4 @@
-import type { ThinkingLine } from '../types'
-
-export function makeThinkingIds(labels: string[]): ThinkingLine[] {
+export function makeThinkingIds(labels) {
   const base = labels.length ? labels : ['Reasoning internally…']
   const stamp = `${Date.now()}`
   return base.map((label, i) => ({
@@ -10,13 +8,7 @@ export function makeThinkingIds(labels: string[]): ThinkingLine[] {
   }))
 }
 
-/** Reveals steps over time until `promise` settles; resolves with promise result. */
-export async function revealThinkingSteps<T>(
-  labels: string[],
-  onTick: (lines: ThinkingLine[]) => void,
-  msPerStep: number,
-  work: Promise<T>,
-): Promise<T> {
+export async function revealThinkingSteps(labels, onTick, msPerStep, work) {
   const lines = makeThinkingIds(labels)
   let completed = 0
   const emit = () => {

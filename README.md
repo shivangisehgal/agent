@@ -19,7 +19,7 @@ Single-page React application for an **AI-assisted diagnosis simulation and insi
 11. [Chat orchestration](#11-chat-orchestration)
 12. [Backend API](#12-backend-api)
 13. [Environment variables](#13-environment-variables)
-14. [TypeScript types](#14-typescript-types)
+14. [Data shapes & optional typing](#14-data-shapes--optional-typing)
 15. [How-to recipes](#15-how-to-recipes)
 16. [Testing ideas](#16-testing-ideas)
 17. [Troubleshooting](#17-troubleshooting)
@@ -44,10 +44,10 @@ The **chat rail** always drives contextual actions per phase (and supports `/rul
 
 | Layer | Choice |
 |-------|--------|
-| UI | React 19, TypeScript, Vite 8 |
+| UI | React 19, JavaScript (JSX), Vite 8 |
 | Charts | Recharts 3 |
 | Icons | Lucide React |
-| API server | Express 5 (`server/index.ts`), `tsx watch` |
+| API server | Express 5 (`server/index.js`), `node --watch` (Node 18+) |
 | AI (optional) | `openai` SDK, JSON-shaped rule responses |
 
 ---
@@ -60,7 +60,7 @@ npm run dev
 ```
 
 - **Client:** http://localhost:5173 — Vite dev server  
-- **API:** http://localhost:3001 — Express (proxied via Vite `/api` → see `vite.config.ts`)
+- **API:** http://localhost:3001 — Express (proxied via Vite `/api` → see `vite.config.js`)
 
 Production build:
 
@@ -79,45 +79,44 @@ npm run preview  # serve client build (API not started)
 ax/
 ├── index.html                 # Shell; inline script syncs theme from localStorage (FOUC avoidance)
 ├── package.json               # Scripts: dev, build, lint; deps
-├── vite.config.ts             # React plugin + /api → localhost:3001 proxy
-├── tsconfig*.json             # Composite TS project for app/node
+├── vite.config.js             # React plugin + /api → localhost:3001 proxy
+├── eslint.config.js           # Flat ESLint for JS/JSX
 ├── .env.example               # OPENAI_* and PORT hints
 ├── server/
-│   └── index.ts               # Express app: routes, mocks, optional OpenAI
+│   └── index.js               # Express app: routes, mocks, optional OpenAI
 ├── public/
 │   └── favicon.svg
 └── src/
-    ├── main.tsx               # StrictMode → ThemeProvider → App
-    ├── App.tsx                # Layout, phase routing, chat orchestration (~500 LOC)
+    ├── main.jsx               # StrictMode → ThemeProvider → App
+    ├── App.jsx                # Layout, phase routing, chat orchestration
     ├── index.css              # Layout + components (uses CSS variables from theme.css)
     ├── theme.css              # html[data-theme="dark"|"light"] tokens + body/ambient/brand overrides
-    ├── types.ts               # Shared TS types (phases, API DTO hints)
     ├── api/
-    │   └── client.ts          # Thin fetch wrappers to /api/*
+    │   └── client.js          # Thin fetch wrappers to /api/*
     ├── context/
-    │   ├── PortalContext.tsx  # Workflow state + chat transcript
-    │   └── ThemeContext.tsx   # Theme mode + persistence (localStorage `portal-theme`)
+    │   ├── PortalContext.jsx  # Workflow state + chat transcript
+    │   └── ThemeContext.jsx   # Theme mode + persistence (localStorage `portal-theme`)
     ├── components/
-    │   ├── AgentChat.tsx      # Right rail chat composer + bubbles
-    │   ├── PhaseRail.tsx      # Left nav with Lucide icons
-    │   ├── ThemeToggle.tsx    # Sun/Moon toggle
-    │   ├── ThinkingStream.tsx # “Thinking process” list
-    │   └── WorkflowProgress.tsx # Top horizontal stepper
+    │   ├── AgentChat.jsx      # Right rail chat composer + bubbles
+    │   ├── PhaseRail.jsx      # Left nav with Lucide icons
+    │   ├── ThemeToggle.jsx    # Sun/Moon toggle
+    │   ├── ThinkingStream.jsx # “Thinking process” list
+    │   └── WorkflowProgress.jsx # Top horizontal stepper
     ├── workspace/
-    │   ├── RuleGeneration.tsx
-    │   ├── PullRequestFlow.tsx
-    │   ├── Verification.tsx
-    │   ├── LargeSimulation.tsx
-    │   └── InsightsDashboard.tsx # Recharts; reads theme for axis/tooltip colors
+    │   ├── RuleGeneration.jsx
+    │   ├── PullRequestFlow.jsx
+    │   ├── Verification.jsx
+    │   ├── LargeSimulation.jsx
+    │   └── InsightsDashboard.jsx # Recharts; reads theme for axis/tooltip colors
     └── utils/
-        └── thinking.ts        # Animated thinking-line helpers used by orchestration timing
+        └── thinking.js        # Animated thinking-line helpers used by orchestration timing
 ```
 
 **Rule of thumb:**  
-- **`App.tsx`** = wiring + orchestration.  
+- **`App.jsx`** = wiring + orchestration.  
 - **`workspace/*`** = main canvas for each phase.  
 - **`components/*`** = shared chrome.  
-- **`server/index.ts`** = all HTTP contracts for mocks/real backends.
+- **`server/index.js`** = all HTTP contracts for mocks/real backends.
 
 ---
 
@@ -125,11 +124,11 @@ ax/
 
 | Script | Runs |
 |--------|------|
-| `npm run dev` | `vite` + `tsx watch server/index.ts` |
+| `npm run dev` | `vite` + `node --watch server/index.js` |
 | `npm run dev:client` | Vite only |
 | `npm run dev:server` | API only |
 
-Vite **`server.proxy['/api']`** forwards browser requests to `http://localhost:3001`, so frontend code uses **relative URLs** (`/api/...`) in `src/api/client.ts`.
+Vite **`server.proxy['/api']`** forwards browser requests to `http://localhost:3001`, so frontend code uses **relative URLs** (`/api/...`) in `src/api/client.js`.
 
 ---
 
@@ -137,23 +136,23 @@ Vite **`server.proxy['/api']`** forwards browser requests to `http://localhost:3
 
 ### 6.1 Entry and providers
 
-`main.tsx` wraps the tree:
+`main.jsx` wraps the tree:
 
 ```text
 StrictMode → ThemeProvider → App
 ```
 
 - **`ThemeProvider`** sets `document.documentElement.dataset.theme` and syncs `localStorage` key **`portal-theme`** (`dark` | `light`).
-- **`PortalProvider`** is inside `App.tsx` (default export wraps `AppInner`) and holds workflow + chat state.
+- **`PortalProvider`** is inside `App.jsx` (default export wraps `AppInner`) and holds workflow + chat state.
 
-### 6.2 `App.tsx` responsibilities
+### 6.2 `App.jsx` responsibilities
 
 1. **Layout:** `app-shell` grid — `PhaseRail` | `main.workspace` | `AgentChat`.
 2. **Header:** `WorkflowProgress` + title row + `ThemeToggle` + status pills.
 3. **Body:** Renders **one** `workspace/*` component based on `state.phase`.
 4. **`handleSend`:** Routes user messages by `state.phase` and optional **slash commands** (`/rule`, `/pr`, `/verify`, `/sim`, `/insights`).
-5. **Thinking UI:** Uses rotating labels + `replaySteps` after API returns (see `utils/thinking.ts`).
-6. **Side effects:** `bootInsights()` when entering insights; simulation polling lives in `LargeSimulation.tsx`.
+5. **Thinking UI:** Uses rotating labels + `replaySteps` after API returns (see `utils/thinking.js`).
+6. **Side effects:** `bootInsights()` when entering insights; simulation polling lives in `LargeSimulation.jsx`.
 
 ### 6.3 `PortalContext` state (high level)
 
@@ -168,7 +167,7 @@ Mutations are **stable callbacks** (`useCallback`) exposed from `usePortal()`.
 
 ### 6.4 API client
 
-`src/api/client.ts` — every function is a `fetch` to `/api/...` with JSON body/parse. **To point at another host** in production, either:
+`src/api/client.js` — every function is a `fetch` to `/api/...` with JSON body/parse. **To point at another host** in production, either:
 
 - Set Vite `define` + env for full base URL, or  
 - Use a reverse proxy so `/api` stays same-origin.
@@ -179,7 +178,7 @@ Mutations are **stable callbacks** (`useCallback`) exposed from `usePortal()`.
 
 ### 7.1 User-facing behavior
 
-- **Toggle:** Sun/Moon button in the workspace header (`ThemeToggle.tsx`).
+- **Toggle:** Sun/Moon button in the workspace header (`ThemeToggle.jsx`).
 - **Persistence:** `localStorage['portal-theme']`.
 - **First paint:** `index.html` inline script sets `data-theme` before React hydrates to reduce flash.
 
@@ -201,13 +200,13 @@ Dark mode is the **original deep blue** aesthetic (reverted from the interim “
 
 ### 7.5 Chart theme bridge
 
-`InsightsDashboard.tsx` calls `useTheme()` to pick axis stroke, tooltip background, and bar/line colors so charts stay legible in light mode.
+`InsightsDashboard.jsx` calls `useTheme()` to pick axis stroke, tooltip background, and bar/line colors so charts stay legible in light mode.
 
 ---
 
 ## 8. Styling system
 
-- **Global:** `index.css` imported from `main.tsx`; `@import './theme.css'` at top of `index.css`.
+- **Global:** `index.css` imported from `main.jsx`; `@import './theme.css'` at top of `index.css`.
 - **Utility patterns:**  
   - `.glass-panel` / `.glass-inset` — frosted surfaces  
   - `.workspace-grid`, `.section-head`, `.pill`, `.primary` / `.ghost` buttons  
@@ -233,24 +232,24 @@ Icons are **tree-shaken** per import. Conventions used here:
 
 ## 10. Workflow phases
 
-Enum: `WorkflowPhase` in `src/types.ts`:
+Phase ids are **string literals** repeated in a few places; keep them in sync when extending the flow:
 
 `rule-generation` | `pull-request` | `verification` | `simulation` | `insights`
 
 **Files to touch when adding a phase:**
 
-1. `src/types.ts` — extend union.
-2. `src/components/PhaseRail.tsx` — add `STEPS` entry + icon.
-3. `src/components/WorkflowProgress.tsx` — add to `PHASE_ORDER` + `LABELS`.
-4. `src/App.tsx` — render new workspace; extend `handleSend` branch; update `workspaceTitle()`.
-5. Optionally `server/index.ts` — new routes.
+1. `src/context/PortalContext.jsx` — default `phase` value if needed.
+2. `src/components/PhaseRail.jsx` — add step entry + icon.
+3. `src/components/WorkflowProgress.jsx` — extend `PHASE_ORDER` + `LABELS`.
+4. `src/App.jsx` — render new workspace (`switch`/`handleSend`/title helpers).
+5. Optionally `server/index.js` — new routes.
 6. `README.md` — document the phase.
 
 ---
 
 ## 11. Chat orchestration
 
-Behavior is **centralized** in `App.tsx` → `handleSend`:
+Behavior is **centralized** in `App.jsx` → `handleSend`:
 
 | Phase | Typical message | Action |
 |-------|-----------------|--------|
@@ -268,7 +267,7 @@ Slash commands jump phase without running the phase-specific API unless the user
 
 ## 12. Backend API
 
-All implemented in **`server/index.ts`** (single file for discoverability).
+All implemented in **`server/index.js`** (single file for discoverability).
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -282,7 +281,7 @@ All implemented in **`server/index.ts`** (single file for discoverability).
 
 **CORS:** enabled for all origins (`cors()`).
 
-**To add a route:** register `app.post/get` in `server/index.ts`, mirror a function in `src/api/client.ts`, then call from React.
+**To add a route:** register `app.post/get` in `server/index.js`, mirror a function in `src/api/client.js`, then call from React.
 
 ---
 
@@ -290,7 +289,7 @@ All implemented in **`server/index.ts`** (single file for discoverability).
 
 | Variable | Used by | Description |
 |---------|---------|-------------|
-| `OPENAI_API_KEY` | `server/index.ts` | When set, rule generation calls OpenAI. |
+| `OPENAI_API_KEY` | `server/index.js` | When set, rule generation calls OpenAI. |
 | `OPENAI_MODEL` | Server | Defaults to `gpt-4o-mini`. |
 | `PORT` | Server | Defaults to `3001`. |
 
@@ -298,13 +297,11 @@ See `.env.example`. Vite-side env vars use `import.meta.env` if you introduce `V
 
 ---
 
-## 14. TypeScript types
+## 14. Data shapes & optional typing
 
-`src/types.ts` defines:
+The app is plain **JavaScript**. Phase ids are string literals wired through context and components (see §10). Payload shapes mirror what **`src/api/client.js`** parses and **`server/index.js`** returns.
 
-- `WorkflowPhase`, `ChatMessage`, `ReasonRow`, `RuleGenerateResponse`, `ThinkingLine`, `InsightsDataset`, …
-
-Keep **API responses** aligned with these types — if server shape changes, update types + `src/api/client.ts` return generics + consumers.
+Keep **API responses** aligned across server and client — if a route’s JSON shape changes, update **`client.js`**, consumers, and the handler in **`server/index.js`**. Optionally add **JSDoc `@typedef`** in `client.js` or a thin `docs/api-shapes.md` if you want editor hints without TypeScript.
 
 ---
 
@@ -314,7 +311,7 @@ Keep **API responses** aligned with these types — if server shape changes, upd
 
 - **HTML:** `index.html` `data-theme` on `<html>`.
 - **Script fallback:** Same file’s `localStorage` sync.
-- **React initial state:** `ThemeContext.tsx` `readStored()`.
+- **React initial state:** `ThemeContext.jsx` `readStored()`.
 
 ### 15.2 Wire real GitHub PR creation
 
@@ -326,11 +323,11 @@ Implement JVM microservice or `child_process` to a CLI that accepts CSV → runs
 
 ### 15.4 Replace Athena simulation stub
 
-Persist jobs in Redis/Postgres; run workers; expose real status SSE or polling — keep **`GET /api/simulation/status/:jobId`** contract stable or update `pollSimulation()` + `LargeSimulation.tsx`.
+Persist jobs in Redis/Postgres; run workers; expose real status SSE or polling — keep **`GET /api/simulation/status/:jobId`** contract stable or update `pollSimulation()` + `LargeSimulation.jsx`.
 
 ### 15.5 Add SQL-backed insights
 
-Replace `GET /api/insights/chart-data` internals with DB queries producing the same JSON keys as `InsightsDataset`. Optionally split into `insights/trend.ts`, `insights/overlap.ts`, etc., and assemble in the route handler.
+Replace `GET /api/insights/chart-data` internals with DB queries producing the same JSON keys the dashboard expects (`InsightsDataset`-style bundles). Optionally split into `insights/trend.js`, `insights/overlap.js`, etc., and assemble in the route handler.
 
 ### 15.6 Add a feature flag
 
@@ -341,7 +338,7 @@ Simplest pattern: `import.meta.env.VITE_FLAG === 'true'` around render branches;
 ## 16. Testing ideas
 
 - **Smoke:** Playwright — load page, toggle theme, switch phases, send chat in rule phase.
-- **API:** Supertest against Express app (export `app` from `server/index.ts` without `listen` for testability).
+- **API:** Supertest against Express app (export `app` from `server/index.js` without `listen` for testability).
 - **Contract:** Snapshot JSON responses for mock endpoints.
 
 ---

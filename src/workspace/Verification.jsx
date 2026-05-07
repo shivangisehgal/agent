@@ -1,26 +1,7 @@
 import { useState } from 'react'
 import { BarChart3, PlayCircle, ShieldCheck, Upload } from 'lucide-react'
 
-export function Verification({
-  csv,
-  onCsv,
-  onRun,
-  busy,
-  summary,
-  kpis,
-}: {
-  csv: string
-  onCsv: (v: string) => void
-  onRun: () => Promise<void>
-  busy: boolean
-  summary?: string
-  kpis?: {
-    matchScore: number
-    triggered: number
-    notTriggered: number
-    conditions: Array<{ conditionId: string; passRate: number; avgWhenTrueC: string }>
-  }
-}) {
+export function Verification({ csv, onCsv, onRun, busy, summary, kpis }) {
   const [drag, setDrag] = useState(false)
   return (
     <div className="workspace-grid">
@@ -31,10 +12,10 @@ export function Verification({
             <div>
               <div className="eyebrow">Rule verification</div>
               <h2>CSV micro-simulation</h2>
-            <p className="muted">
-              Hydrate sample telemetry, execute the integrated Kie session, and surface KPI-style
-              diagnostics. Wire `POST /api/verify/run` to embedded Drools for fidelity.
-            </p>
+              <p className="muted">
+                Hydrate sample telemetry, execute the integrated Kie session, and surface KPI-style
+                diagnostics. Wire `POST /api/verify/run` to embedded Drools for fidelity.
+              </p>
             </div>
           </div>
         </header>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CloudCog, Gauge, Layers, RefreshCw } from 'lucide-react'
-import { pollSimulation } from '../api/client'
+import { pollSimulation } from '../api/client.js'
 
 export function LargeSimulation({
   filters,
@@ -10,26 +10,8 @@ export function LargeSimulation({
   onStartJob,
   jobId,
   busy,
-}: {
-  filters: Record<string, string>
-  onFilters: (f: Record<string, string>) => void
-  recommendation: null | {
-    engine: string
-    rationale: string
-    estimatedRecords: number
-    estimatedCostUsd: number
-    estimatedMinutes: [number, number]
-  }
-  onRecommend: () => Promise<void>
-  onStartJob: () => Promise<void>
-  jobId?: string
-  busy: boolean
 }) {
-  const [status, setStatus] = useState<{
-    progress: number
-    recordsScanned: number
-    stages: Array<{ name: string; status: string }>
-  } | null>(null)
+  const [status, setStatus] = useState(null)
 
   useEffect(() => {
     if (!jobId) return
@@ -41,7 +23,7 @@ export function LargeSimulation({
     return () => window.clearInterval(iv)
   }, [jobId])
 
-  function setField(key: string, value: string) {
+  function setField(key, value) {
     onFilters({ ...filters, [key]: value })
   }
 
@@ -54,10 +36,10 @@ export function LargeSimulation({
             <div>
               <div className="eyebrow">Simulation config · sample & full align</div>
               <h2>Large-scale Athena / S3 rehearsal</h2>
-            <p className="muted">
-              Mirrors the multi-step funnel from curated samples to partitioned warehouse scans. Engines,
-              costing, and job graph are mediated by `/api/simulation/*`.
-            </p>
+              <p className="muted">
+                Mirrors the multi-step funnel from curated samples to partitioned warehouse scans. Engines,
+                costing, and job graph are mediated by `/api/simulation/*`.
+              </p>
             </div>
           </div>
           <button type="button" className="ghost" disabled={busy} onClick={() => void onRecommend()}>
@@ -81,41 +63,37 @@ export function LargeSimulation({
             <input
               value={filters.timeEnd ?? ''}
               onChange={(e) => setField('timeEnd', e.target.value)}
-               placeholder="2025-11-01"
-             />
-           </label>
+              placeholder="2025-11-01"
+            />
+          </label>
           <label className="field">
             Model code
             <input
               value={filters.modelCode ?? ''}
               onChange={(e) => setField('modelCode', e.target.value)}
-               placeholder="RF-B"
-             />
-           </label>
+              placeholder="RF-B"
+            />
+          </label>
           <label className="field">
             Country code
             <input
               value={filters.country ?? ''}
               onChange={(e) => setField('country', e.target.value)}
-               placeholder="US"
-             />
-           </label>
+              placeholder="US"
+            />
+          </label>
           <label className="field">
             Product family
             <input
               value={filters.family ?? ''}
               onChange={(e) => setField('family', e.target.value)}
-               placeholder="4-Door Flex"
-             />
-           </label>
+              placeholder="4-Door Flex"
+            />
+          </label>
           <label className="field">
             Firmware cohort
-            <input
-              value={filters.fw ?? ''}
-              onChange={(e) => setField('fw', e.target.value)}
-               placeholder="1.42.x"
-             />
-           </label>
+            <input value={filters.fw ?? ''} onChange={(e) => setField('fw', e.target.value)} placeholder="1.42.x" />
+          </label>
         </div>
       </section>
 

@@ -1,8 +1,7 @@
 import { Fragment } from 'react'
 import { Route } from 'lucide-react'
-import type { WorkflowPhase } from '../types'
 
-const PHASE_ORDER: WorkflowPhase[] = [
+const PHASE_ORDER = [
   'rule-generation',
   'pull-request',
   'verification',
@@ -10,7 +9,7 @@ const PHASE_ORDER: WorkflowPhase[] = [
   'insights',
 ]
 
-const LABELS: Record<WorkflowPhase, { short: string; full: string }> = {
+const LABELS = {
   'rule-generation': { short: 'DRL', full: 'Rule generation' },
   'pull-request': { short: 'PR', full: 'Pull request' },
   verification: { short: 'Verify', full: 'Verification' },
@@ -18,13 +17,7 @@ const LABELS: Record<WorkflowPhase, { short: string; full: string }> = {
   insights: { short: 'Insights', full: 'Insights & charts' },
 }
 
-export function WorkflowProgress({
-  active,
-  onSelect,
-}: {
-  active: WorkflowPhase
-  onSelect?: (p: WorkflowPhase) => void
-}) {
+export function WorkflowProgress({ active, onSelect }) {
   const activeIdx = Math.max(0, PHASE_ORDER.indexOf(active))
   const pct =
     PHASE_ORDER.length <= 1 ? 100 : Math.round((activeIdx / (PHASE_ORDER.length - 1)) * 100)

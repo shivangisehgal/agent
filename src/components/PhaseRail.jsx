@@ -1,14 +1,6 @@
-import {
-  BarChart3,
-  Cloud,
-  Code2,
-  FileCheck,
-  GitBranch,
-  type LucideIcon,
-} from 'lucide-react'
-import type { WorkflowPhase } from '../types'
+import { BarChart3, Cloud, Code2, FileCheck, GitBranch } from 'lucide-react'
 
-const STEPS: { id: WorkflowPhase; label: string; hint: string; Icon: LucideIcon }[] = [
+const STEPS = [
   { id: 'rule-generation', label: 'DRL gen', hint: 'NL → rule + ledger', Icon: Code2 },
   { id: 'pull-request', label: 'PR', hint: 'GitHub / eCode', Icon: GitBranch },
   { id: 'verification', label: 'Verify', hint: 'CSV micro-run', Icon: FileCheck },
@@ -16,13 +8,7 @@ const STEPS: { id: WorkflowPhase; label: string; hint: string; Icon: LucideIcon 
   { id: 'insights', label: 'Insights', hint: 'Fixed SQL charts', Icon: BarChart3 },
 ]
 
-export function PhaseRail({
-  active,
-  onSelect,
-}: {
-  active: WorkflowPhase
-  onSelect: (p: WorkflowPhase) => void
-}) {
+export function PhaseRail({ active, onSelect }) {
   return (
     <nav className="phase-rail glass-panel" aria-label="Workflow">
       <div className="brand-lockup">
